@@ -1,4 +1,4 @@
-package com.example.instagramloginpage
+package com.example.instagramloginpage.login
 
 import android.app.Activity
 import androidx.compose.foundation.Image
@@ -30,6 +30,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -45,16 +46,21 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.instagramloginpage.R
 
 @Composable
-fun LoginScreen() {
+//How can I tel to this login screen that is going to receive a ViewModel parameter?
+//fun LoginScreen() {
+
+//For now we are going to add a parameter viewModel we don't have it yet but we are going to add later
+fun LoginScreen(loginViewModel: LoginViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(8.dp)
     ) {
         Header(Modifier.align(Alignment.TopEnd))
-        Body(Modifier.align(Alignment.Center))
+        Body(Modifier.align(Alignment.Center), loginViewModel)
         Footer(Modifier.align(Alignment.BottomCenter))
     }
 }
@@ -96,20 +102,45 @@ fun BottomLine() {
 }
 
 @Composable
-fun Body(modifier: Modifier) {
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var loginEnabled by rememberSaveable { mutableStateOf(false) }
+//Here we are going to work wth the ViewModel, so we have to add the ViewModel parameter here
+//fun Body(modifier: Modifier) {
+fun Body(modifier: Modifier, loginViewModel: LoginViewModel) {
+
+    //Now we can erase the email var because we are going to pass it through the ViewModel
+    //var email by rememberSaveable { mutableStateOf("") }
+    //var password by rememberSaveable { mutableStateOf("") }
+    ///var loginEnabled by rememberSaveable { mutableStateOf(false) }
+
+    //Here we going to create a val that take the value emal from the ViewModel
+    val email: String by loginViewModel.email.observeAsState(initial = "")
+    val password by loginViewModel.password.observeAsState(initial = "")
+    val isLoginEnabled by loginViewModel.isLoginEnabled.observeAsState(initial = false)
+
     Column(modifier = modifier) {
         LogoImage(Modifier.align(Alignment.CenterHorizontally))
         Spacer(modifier = Modifier.size(16.dp))
-        EmailSignIn(email) { email = it }
+
+        //This function needs a onChangedListener that is no associated wth the view model
+        //EmailSignIn(email) { email = it }
+
+        EmailSignIn(email) {
+            //We create the function onLoginChanged() that is going to be on LoginViewModel
+            //This function needs a parameter that s the same change of the email.
+            loginViewModel.onLoginChanged(it, password = password)
+        }
+
         Spacer(modifier = Modifier.size(4.dp))
-        PasswordSignIn(password) { password = it }
+
+
+        PasswordSignIn(password) {
+            loginViewModel.onLoginChanged(email = email, it)
+        }
+
+
         Spacer(modifier = Modifier.size(8.dp))
         ForgotPassword(Modifier.align(Alignment.End))
         Spacer(modifier = Modifier.size(16.dp))
-        LoginButton(loginEnabled)
+        LoginButton(isLoginEnabled)
         Spacer(modifier = Modifier.size(16.dp))
         LoginDivider()
         Spacer(modifier = Modifier.size(32.dp))
@@ -170,19 +201,15 @@ fun LoginDivider() {
 @Composable
 fun LoginButton(loginEnabled: Boolean) {
     Button(
-        onClick = {},
-        enabled = loginEnabled,
-        colors = ButtonDefaults.buttonColors(
+        onClick = {}, enabled = loginEnabled, colors = ButtonDefaults.buttonColors(
             containerColor = Color(0xFF4EA8E9),
             disabledContainerColor = Color(0xFF78C8F9),
             contentColor = Color.White,
             disabledContentColor = Color.White
-        ),
-        modifier = Modifier.fillMaxWidth()
+        ), modifier = Modifier.fillMaxWidth()
     ) {
         Text("Log In")
-    }
-    /*containerColor: Color,
+    }/*containerColor: Color,
         private val contentColor: Color,
         private val disabledContainerColor: Color,
         private val disabledContentColor: Color,*/
@@ -202,7 +229,10 @@ fun ForgotPassword(modifier: Modifier) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PasswordSignIn(password: String, onTextChanged: (String) -> Unit) {
+
     var passwordVisibility by remember { mutableStateOf(false) }
+
+
     TextField(
         value = password,
         onValueChange = { onTextChanged(it) },
@@ -210,10 +240,10 @@ fun PasswordSignIn(password: String, onTextChanged: (String) -> Unit) {
         placeholder = { Text(text = "Password") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         colors = TextFieldDefaults.textFieldColors(
-            focusedTextColor = Color(0xFFB2B2B2),
-            unfocusedTextColor = Color(0xFFFAFAFA),
+            focusedTextColor = Color(0xFF121212),
+            unfocusedTextColor = Color(0xFF1A1A1A),
             focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Black,
             containerColor = Color(0xFFFAFAFA)
         ),
         trailingIcon = {
@@ -228,8 +258,7 @@ fun PasswordSignIn(password: String, onTextChanged: (String) -> Unit) {
         },
         visualTransformation = if (passwordVisibility) {
             VisualTransformation.None
-        } else
-            PasswordVisualTransformation()
+        } else PasswordVisualTransformation()
     )
 }
 
@@ -245,7 +274,7 @@ fun EmailSignIn(email: String, onTextChanged: (String) -> Unit) {
             focusedTextColor = Color(0xFFB2B2B2),
             unfocusedTextColor = Color(0xFFFAFAFA),
             focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Black,
             containerColor = Color(0xFFFAFAFA),
         ),
         singleLine = true,
