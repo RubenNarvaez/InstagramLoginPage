@@ -140,7 +140,8 @@ fun Body(modifier: Modifier, loginViewModel: LoginViewModel) {
         Spacer(modifier = Modifier.size(8.dp))
         ForgotPassword(Modifier.align(Alignment.End))
         Spacer(modifier = Modifier.size(16.dp))
-        LoginButton(isLoginEnabled)
+        //Now the login button is going to receive the view model
+        LoginButton(isLoginEnabled, loginViewModel)
         Spacer(modifier = Modifier.size(16.dp))
         LoginDivider()
         Spacer(modifier = Modifier.size(32.dp))
@@ -199,9 +200,11 @@ fun LoginDivider() {
 }
 
 @Composable
-fun LoginButton(loginEnabled: Boolean) {
+fun LoginButton(loginEnabled: Boolean, loginViewModel: LoginViewModel) {
     Button(
-        onClick = {}, enabled = loginEnabled, colors = ButtonDefaults.buttonColors(
+        onClick = { loginViewModel.onLoginSelected() },
+        enabled = loginEnabled,
+        colors = ButtonDefaults.buttonColors(
             containerColor = Color(0xFF4EA8E9),
             disabledContainerColor = Color(0xFF78C8F9),
             contentColor = Color.White,
